@@ -78,7 +78,9 @@ bot.on("message", async (ctx) => {
     const updateState = updateStateOfId(chatId, ctx);
     const [user] = await User.findOrCreate({where: {id: chatId}});
     const userState = user?.state;
-    if (text && chat.type === "private") {
+    if ((message?.new_chat_member || message?.left_chat_member) && chat?.username === "tosh_ang") {
+        await ctx.deleteMessage();
+    } else if (text && chat.type === "private") {
         if (text.startsWith("/start")) {
             await ctx.reply("Botga xush kelibsiz");
             await updateState(state.START);
