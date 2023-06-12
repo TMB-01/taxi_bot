@@ -1,17 +1,27 @@
 const {Markup} = require("telegraf");
-const {create_order, skip, go_back_btn} = require("./btn");
+const {
+    create_order,
+    skip,
+    go_back_btn,
+    package,
+    ONE_CLIENT,
+    THREE_CLIENTS,
+    FOUR_CLIENTS,
+    TWO_CLIENTS
+} = require("./btn");
 const {HALF_AN_NOUR, AN_HOUR, TWO_HOURS, THREE_HOURS, DONT_CARE} = require("../contants/wait");
 const {
     MAKE_POST, EDIT_POST, EDIT_FROM, EDIT_TO, EDIT_CAN_WAIT, EDIT_NUMBER_OF_CLIENTS, EDIT_PHONE_NUMBER, EDIT_DESC,
-    EDIT_GO_BACK, TAXI_FOUND, I_FOUND_TAXI, I_DIDNT_FIND_TAXI
+    EDIT_GO_BACK, TAXI_FOUND, I_FOUND_TAXI, I_DIDNT_FIND_TAXI, DELETE_POST
 } = require("../contants/callback");
 module.exports = {
     START_MENU: Markup.keyboard([
         [Markup.button.text(create_order)],
     ]).resize(),
     NUMBER_OF_PASSENGERS: Markup.keyboard([
-        [Markup.button.text("1"), Markup.button.text("2")],
-        [Markup.button.text("3"), Markup.button.text("4")]
+        [Markup.button.text(package)],
+        [Markup.button.text(ONE_CLIENT), Markup.button.text(TWO_CLIENTS)],
+        [Markup.button.text(THREE_CLIENTS), Markup.button.text(FOUR_CLIENTS)],
     ]).resize(),
     CAN_WAIT: Markup.keyboard([
         [Markup.button.text(HALF_AN_NOUR)],
@@ -34,8 +44,10 @@ module.exports = {
     POST_TO_GROUP_OR_EDIT: (order_id) => Markup.inlineKeyboard([
         [Markup.button.callback("Tahrirlash", `${EDIT_POST}|${order_id}`)],
         [Markup.button.callback("Guruhga joylash", `${MAKE_POST}|${order_id}`)],
+        [Markup.button.callback("E'lonni uchirish", `${DELETE_POST}|${order_id}`)],
+
     ]),
-    EDIT_BUTTONS: (order_id) => (
+    EDIT_BUTTONS: (order_id, clientAmount) => (
         Markup.inlineKeyboard([
             [
                 Markup.button.callback("⬇️", `${EDIT_FROM}|${order_id}`),
@@ -43,17 +55,18 @@ module.exports = {
             ],
             [
                 Markup.button.callback("☎️", `${EDIT_PHONE_NUMBER}|${order_id}`),
-                Markup.button.callback("⏱️", `${EDIT_CAN_WAIT}|${order_id}`)
+                // Markup.button.callback("⏱️", `${EDIT_CAN_WAIT}|${order_id}`)
+                Markup.button.callback(clientAmount === 0 ? "📦" : "#️⃣", `${EDIT_NUMBER_OF_CLIENTS}|${order_id}`),
             ],
             [
-                Markup.button.callback("#️⃣", `${EDIT_NUMBER_OF_CLIENTS}|${order_id}`),
                 Markup.button.callback("🟢", `${EDIT_DESC}|${order_id}`)
             ],
             [Markup.button.callback("🔙 Orqaga qaytish", `${EDIT_GO_BACK}|${order_id}`)],
         ])),
     EDIT_NUMBER_OF_PASSENGERS: Markup.keyboard([
-        [Markup.button.text("1"), Markup.button.text("2")],
-        [Markup.button.text("3"), Markup.button.text("4")],
+        [Markup.button.text(package)],
+        [Markup.button.text(ONE_CLIENT), Markup.button.text(TWO_CLIENTS)],
+        [Markup.button.text(THREE_CLIENTS), Markup.button.text(FOUR_CLIENTS)],
         [Markup.button.text(go_back_btn)]
     ]).resize(),
     EDIT_CAN_WAIT: Markup.keyboard([

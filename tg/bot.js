@@ -8,9 +8,9 @@ const {NUMBER_OF_CLIENTS, START} = require("../contants/state");
 const {SKIP, POST_TO_GROUP, POST_TO_GROUP_OR_EDIT, EDIT_BUTTONS, FOUND_TAXI, CONFIRM_FOUND} = require("./kbd");
 const {
     MAKE_POST, EDIT_POST, EDIT_GO_BACK, EDIT_FROM, EDIT_TO, EDIT_PHONE_NUMBER, EDIT_CAN_WAIT, EDIT_NUMBER_OF_CLIENTS,
-    EDIT_DESC, TAXI_FOUND, I_FOUND_TAXI, I_DIDNT_FIND_TAXI
+    EDIT_DESC, TAXI_FOUND, I_FOUND_TAXI, I_DIDNT_FIND_TAXI, DELETE_POST
 } = require("../contants/callback");
-const {skip, go_back_btn} = require("./btn");
+const {skip, go_back_btn, ONE_CLIENT, TWO_CLIENTS, THREE_CLIENTS, FOUR_CLIENTS} = require("./btn");
 require("dotenv").config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN); //@tosh_ang_bot
@@ -53,8 +53,8 @@ const reviewMsg = async (order, isActive) => {
         `⬇️ ${order?.from}\n` +
         `⏺️️ ${order?.to}\n` +
         `☎️ ${isActive === false ? "+998 ** ***-**-**" : phoneNumber(order?.phone_number)}\n` +
-        `⏱️ ${wait[order?.can_wait]}\n` +
-        `#️⃣ ${order?.clientsAmount} kishi\n` +
+        // `⏱️ ${wait[order?.can_wait]}\n` +
+        (order?.clientsAmount === 0 ? btn?.package : `#️⃣ ${order?.clientsAmount} kishi`) + "\n" +
         `👤 ${isActive === false ? "Удаленный аккаунт" : clientData(chat)} \n\n` +
         (order?.desc && order?.desc !== "NO_NEED" ? `🟢 ${order?.desc}\n\n` : "") +
         groupChatId
@@ -100,8 +100,8 @@ bot.on("message", async (ctx) => {
             await updateState(`${NUMBER_OF_CLIENTS}|${orderId}`);
         } else if (user.state.startsWith(state.NUMBER_OF_CLIENTS)) {
             const orderId = user.state.split("|")[1];
-            if (["1", "2", "3", "4"].includes(text)) {
-                await Order.update({clientsAmount: Number(text)}, {where: {id: orderId}})
+            if ([ONE_CLIENT, TWO_CLIENTS, THREE_CLIENTS, FOUR_CLIENTS].includes(text) || text === btn?.package) {
+                await Order.update({clientsAmount: text === btn?.package ? 0 : Number(text?.slice(0, 1))}, {where: {id: orderId}})
                 await updateState(`${state.PHONE_NUMBER}|${orderId}`);
             } else {
                 await updateState(`${NUMBER_OF_CLIENTS}|${orderId}`);
@@ -112,7 +112,8 @@ bot.on("message", async (ctx) => {
             const regExp = /^(([+]?998)?[( ]?[0-9]{2}[) ]?[ ]?[0-9]{3}[- ]?[0-9]{2}[- ]?[0-9]{2})$/
             if (regExp.test(text.trim())) {
                 await Order.update({phone_number: text.trim()}, {where: {id: orderId}})
-                await updateState(`${state.CAN_WAIT}|${orderId}`);
+                // await updateState(`${state.CAN_WAIT}|${orderId}`);
+                await updateState(`${state.DESC}|${orderId}`);
             } else {
                 ctx.reply("Telefon raqamni xato farmatda yozdiz, yana urinib kuring");
             }
@@ -164,7 +165,7 @@ bot.on("message", async (ctx) => {
             const order = await Order.findByPk(orderId);
             let rmText = await reviewMsg(order);
             rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-            ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+            ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
         } else if (userState.startsWith(state.EDIT_TO)) {
             const orderId = user.state.split("|")[1];
             if (text !== go_back_btn) {
@@ -175,7 +176,7 @@ bot.on("message", async (ctx) => {
             const order = await Order.findByPk(orderId);
             let rmText = await reviewMsg(order);
             rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-            ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+            ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
         } else if (userState.startsWith(state.EDIT_PHONE_NUMBER)) {
             const orderId = user.state.split("|")[1];
             if (text === go_back_btn) {
@@ -183,7 +184,7 @@ bot.on("message", async (ctx) => {
                 const order = await Order.findByPk(orderId);
                 let rmText = await reviewMsg(order);
                 rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-                ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+                ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
             } else {
                 const regExp = /^(([+]?998)?[( ]?[0-9]{2}[) ]?[ ]?[0-9]{3}[- ]?[0-9]{2}[- ]?[0-9]{2})$/
                 if (regExp.test(text.trim())) {
@@ -193,7 +194,7 @@ bot.on("message", async (ctx) => {
                     const order = await Order.findByPk(orderId);
                     let rmText = await reviewMsg(order);
                     rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-                    ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+                    ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
                 } else {
                     ctx.reply("Telefon raqamni xato farmatda yozdiz, yana urinib kuring");
                 }
@@ -205,7 +206,7 @@ bot.on("message", async (ctx) => {
                 const order = await Order.findByPk(orderId);
                 let rmText = await reviewMsg(order);
                 rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-                ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+                ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
             } else {
                 const isValidWait = Object.entries(wait).find(([key, value]) => value === text);
                 if (isValidWait?.length) {
@@ -215,7 +216,7 @@ bot.on("message", async (ctx) => {
                     const order = await Order.findByPk(orderId);
                     let rmText = await reviewMsg(order);
                     rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-                    ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+                    ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
                 } else {
                     ctx.reply("Iltimos tugmalarni birini bosing")
                 }
@@ -227,16 +228,16 @@ bot.on("message", async (ctx) => {
                 const order = await Order.findByPk(orderId);
                 let rmText = await reviewMsg(order);
                 rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-                ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+                ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
             } else {
-                if (["1", "2", "3", "4"].includes(text)) {
-                    await Order.update({clientsAmount: Number(text)}, {where: {id: orderId}})
+                if ([ONE_CLIENT, TWO_CLIENTS, THREE_CLIENTS, FOUR_CLIENTS].includes(text) || text === btn?.package) {
+                    await Order.update({clientsAmount: text === btn?.package ? 0 : Number(text?.slice(0, 1))}, {where: {id: orderId}})
                     ctx.replyWithHTML("O'zgartirildi")
                     await updateState(`${state.REVIEW}|${orderId}`);
                     const order = await Order.findByPk(orderId);
                     let rmText = await reviewMsg(order);
                     rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-                    ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+                    ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
                 } else {
                     await updateState(`${state.EDIT_NUMBER_OF_CLIENTS}|${orderId}`);
                     commandNotFound();
@@ -252,7 +253,7 @@ bot.on("message", async (ctx) => {
             const order = await Order.findByPk(orderId);
             let rmText = await reviewMsg(order);
             rmText += "\n\n<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-            ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId))
+            ctx.replyWithHTML(rmText, EDIT_BUTTONS(orderId, order?.clientsAmount))
         }
     }
 }, "message")
@@ -310,7 +311,16 @@ bot.on("callback_query", async (ctx) => {
             const order = await Order.findByPk(orderId);
             let text = await reviewMsg(order);
             text = text + "\n\n" + "<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
-            ctx.editMessageText(text, {...EDIT_BUTTONS(orderId), parse_mode: "HTML"})
+            ctx.editMessageText(text, {...EDIT_BUTTONS(orderId, order?.clientsAmount), parse_mode: "HTML"})
+        } else if (callback_query_data?.startsWith(`${DELETE_POST}`)) {
+            const orderId = callback_query_data?.split("|")[1];
+            await Order.destroy({where: {id: orderId}});
+            await ctx.deleteMessage();
+            ctx.reply("E'lon uchirildi");
+            await updateState(state?.START);
+            // let text = await reviewMsg(order);
+            // text = text + "\n\n" + "<u>O'zgartirmoqchi bugan narsayizni quyidagi tugmalardan tanlang</u>"
+            // ctx.editMessageText(text, {...EDIT_BUTTONS(orderId, order?.clientsAmount), parse_mode: "HTML"})
         } else if (callback_query_data?.startsWith(`${EDIT_GO_BACK}`)) {
             const orderId = callback_query_data?.split("|")[1];
             const order = await Order.findByPk(orderId);
@@ -393,7 +403,9 @@ process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
 
 const launchBot = () => {
-    return bot.launch();
+    return bot.launch().then(() => {
+        console.log("Bot started successfully")
+    });
 }
 
 module.exports = {launchBot}

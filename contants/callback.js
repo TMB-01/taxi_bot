@@ -1,6 +1,7 @@
 module.exports = {
     MAKE_POST: "MAKE_POST",
     EDIT_POST: "EDIT_POST",
+    DELETE_POST:"DELETE_POST",
     EDIT_FROM: "EDIT_FROM",
     EDIT_TO: "EDIT_TO",
     EDIT_CAN_WAIT: "EDIT_CAN_WAIT",

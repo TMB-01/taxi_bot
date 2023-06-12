@@ -22,7 +22,7 @@ const updateStateOfId = (chatId, ctx) => async (state) => {
     } else if (state.startsWith(`${TO}|`)) {
         return await ctx.reply("Qayerga bormoqchisiz?", Markup.removeKeyboard());
     } else if (state.startsWith(NUMBER_OF_CLIENTS)) {
-        return await ctx.reply("Nechikishisizlar?", kbd.NUMBER_OF_PASSENGERS)
+        return await ctx.reply("Pochtami? yoki nechikishisizlar?", kbd.NUMBER_OF_PASSENGERS)
     } else if (state.startsWith(PHONE_NUMBER)) {
         return await ctx.reply("Telefon raqamingizni kiriting", Markup.removeKeyboard());
     } else if (state.startsWith(CAN_WAIT)) {
@@ -37,7 +37,7 @@ const updateStateOfId = (chatId, ctx) => async (state) => {
     } else if (state.startsWith(EDIT_TO)) {
         return await ctx.reply("Qayerga bormoqchisiz?", GO_BACK)
     } else if (state.startsWith(EDIT_NUMBER_OF_CLIENTS)) {
-        return await ctx.reply("Nechikishisizlar?", kbd.EDIT_NUMBER_OF_PASSENGERS)
+        return await ctx.reply("Pochtami? yoki nechikishisizlar?", kbd.EDIT_NUMBER_OF_PASSENGERS)
     } else if (state.startsWith(EDIT_PHONE_NUMBER)) {
         return await ctx.reply("Telefon raqamingizni kiriting", GO_BACK)
     } else if (state.startsWith(EDIT_CAN_WAIT)) {
