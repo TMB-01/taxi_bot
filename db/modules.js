@@ -15,6 +15,10 @@ const User = sequelize.define("user_data", {
     state: {
         type: STRING,
         defaultValue: START
+    },
+    isActive: {
+        type: BOOLEAN,
+        defaultValue: true
     }
 })
 
@@ -32,5 +36,17 @@ const Order = sequelize.define("order_data", {
     isActive: {type: BOOLEAN, defaultValue: true}
 })
 
+const MsgToPrivateChat = sequelize.define("msg_to_private_chat", {
+    id,
+    msgText: {
+        type: TEXT,
+    },
+    resText: {
+        type: TEXT
+    },
+    chatId: {
+        type: STRING,
+    }
+})
 
-module.exports = {User, Order}
+module.exports = {User, Order, MsgToPrivateChat}
