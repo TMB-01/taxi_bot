@@ -14,7 +14,8 @@ const {skip, go_back_btn, ONE_CLIENT, TWO_CLIENTS, THREE_CLIENTS, FOUR_CLIENTS} 
 require("dotenv").config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN); //@tosh_ang_bot
-const groupChatId = "@tosh_ang"
+// const groupChatId = "@tosh_ang";
+const groupChatId = "@TOSHKENT_ANGREN_TAKSI";
 
 const clientData = (chat) => {
     const {
@@ -61,6 +62,31 @@ const reviewMsg = async (order, isActive) => {
     )
 }
 
+bot.use(async (ctx, next) => {
+    const myChatMember = ctx?.update?.my_chat_member;
+    if (myChatMember) {
+        const chatId = myChatMember.chat.id;
+        if (myChatMember?.new_chat_member?.status === "kicked") {
+            await User.update({
+                isActive: false,
+            }, {
+                where: {
+                    id: chatId
+                }
+            })
+        } else if (myChatMember?.new_chat_member?.status === "member") {
+            await User.update({
+                isActive: true,
+            }, {
+                where: {
+                    id: chatId
+                }
+            })
+        }
+    }
+    await next()
+})
+
 bot.on("message", async (ctx) => {
     const commandNotFound = () => ctx.reply("Buyruq topilmadi");
     const update = ctx.update;
@@ -78,9 +104,22 @@ bot.on("message", async (ctx) => {
     const updateState = updateStateOfId(chatId, ctx);
     const [user] = await User.findOrCreate({where: {id: chatId}});
     const userState = user?.state;
-    if ((message?.new_chat_member || message?.left_chat_member) && chat?.username === "tosh_ang") {
+    if ((message?.new_chat_member || message?.left_chat_member) && chat?.username === groupChatId?.slice(1)) {
         await ctx.deleteMessage();
+        if (message?.new_chat_member) {
+            const new_chat_member = message?.new_chat_member
+            await ctx.reply(`Assalomu alaykum <a href="tg://user?id=${new_chat_member?.id}">${new_chat_member?.first_name} ${new_chat_member?.last_name || ""}</a>\nGuruhga xush kelibsiz. Taksi buyurtma qilish uchun iltimos botga uting. @tosh_ang_bot\n\nRahmat.`, {
+                parse_mode: "HTML",
+                disable_notification: true,
+            });
+        }
     } else if (text && chat.type === "private") {
+        const chatMember = await ctx.telegram.getChatMember(groupChatId, Number(chatId));
+        console.log(chatMember);
+        if (chatMember?.status === "left") {
+            ctx.reply(`Davom etishdan oldin iltimos guruhga a'zo bo'ling. ${groupChatId}`)
+            return;
+        }
         if (text.startsWith("/start")) {
             await ctx.reply("Botga xush kelibsiz");
             await updateState(state.START);
