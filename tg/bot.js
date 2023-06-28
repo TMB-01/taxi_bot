@@ -106,13 +106,13 @@ bot.on("message", async (ctx) => {
     const userState = user?.state;
     if ((message?.new_chat_member || message?.left_chat_member) && chat?.username === groupChatId?.slice(1)) {
         await ctx.deleteMessage();
-        if (message?.new_chat_member) {
-            const new_chat_member = message?.new_chat_member
-            await ctx.reply(`Assalomu alaykum <a href="tg://user?id=${new_chat_member?.id}">${new_chat_member?.first_name} ${new_chat_member?.last_name || ""}</a>\nGuruhga xush kelibsiz. Taksi buyurtma qilish uchun iltimos botga uting. @tosh_ang_bot\n\nRahmat.`, {
-                parse_mode: "HTML",
-                disable_notification: true,
-            });
-        }
+        // if (message?.new_chat_member) {
+        //     const new_chat_member = message?.new_chat_member
+        //     await ctx.reply(`Assalomu alaykum <a href="tg://user?id=${new_chat_member?.id}">${new_chat_member?.first_name} ${new_chat_member?.last_name || ""}</a>\nGuruhga xush kelibsiz. Taksi buyurtma qilish uchun iltimos botga uting. @tosh_ang_bot\n\nRahmat.`, {
+        //         parse_mode: "HTML",
+        //         disable_notification: true,
+        //     });
+        // }
     } else if (text && chat.type === "private") {
         const chatMember = await ctx.telegram.getChatMember(groupChatId, Number(chatId));
         console.log(chatMember);
